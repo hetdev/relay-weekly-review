@@ -90,5 +90,5 @@ export const REASON_LABELS: Record<string, string> = {
   low_volume: "Low volume",
   below_recent_range: "Below recent range",
   above_recent_range: "Above recent range",
-  no_review_flag: "Within recent range",
+  no_review_flag: "Review thresholds not met",
 };

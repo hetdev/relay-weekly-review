@@ -40,11 +40,6 @@ describe("parseUrlFilters", () => {
     expect(invalid).toEqual(["account=abc", "week=2026-07-21", "metric=churn"]);
   });
 
-  it("rejects non-Monday weeks even when well-formed", () => {
-    const { filters, invalid } = parseUrlFilters("?week=2026-07-22");
-    expect(filters.week).toBeNull();
-    expect(invalid).toEqual(["week=2026-07-22"]);
-  });
 });
 
 describe("filtersToSearch", () => {

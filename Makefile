@@ -21,18 +21,21 @@ db-init: ## One-time: init the local cluster, roles, and databases
 	$(PGBIN)/initdb -D var/pgdata -E UTF8 --locale=C -A trust -U relay_admin
 	$(MAKE) db-up
 	$(PSQL) -h 127.0.0.1 -p $(PGPORT) -U relay_admin -d postgres -c "CREATE ROLE relay_app LOGIN"
+	for db in relay_dev relay_test relay_recon; do $(PSQL) -h 127.0.0.1 -p $(PGPORT) -U relay_admin -d postgres -c "CREATE DATABASE $$db OWNER relay_admin" || exit $$?; done
 	$(PSQL) -h 127.0.0.1 -p $(PGPORT) -U relay_admin -d postgres -c "GRANT CONNECT ON DATABASE relay_dev, relay_test, relay_recon TO relay_app"
-	for db in relay_dev relay_test relay_recon; do $(PSQL) -h 127.0.0.1 -p $(PGPORT) -U relay_admin -d postgres -c "CREATE DATABASE $$db OWNER relay_admin"; done
 
 db-up: ## Start the local PostgreSQL cluster (port 5433, loopback only)
-	$(PGCTL) -D var/pgdata -o "-p $(PGPORT) -k $(CURDIR)/var -c listen_addresses=127.0.0.1" -l var/pg.log start
+	@if $(PGCTL) -D var/pgdata status >/dev/null 2>&1; then \
+		echo "PostgreSQL is already running"; \
+	else \
+		$(PGCTL) -D var/pgdata -o "-p $(PGPORT) -k $(CURDIR)/var -c listen_addresses=127.0.0.1" -l var/pg.log start; \
+	fi
 
 db-down: ## Stop the local PostgreSQL cluster
 	$(PGCTL) -D var/pgdata stop || true
 
 venv: ## Create the backend virtualenv with pinned dependencies
 	/opt/homebrew/bin/python3.12 -m venv backend/.venv
-	$(PIP) install --upgrade pip -q
 	$(PIP) install -q -r backend/requirements.txt
 
 setup: venv db-up migrate seed grants frontend-install ## Full local setup (after `make db-init`)
@@ -57,7 +60,7 @@ backend-dev: ## Run the API on 127.0.0.1:8000 (read-only role)
 	cd backend && .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 frontend-install: ## Install frontend dependencies
-	cd frontend && npm install
+	cd frontend && npm ci --ignore-scripts
 
 frontend-dev: ## Run the UI on localhost:5173 (proxies /api to :8000)
 	cd frontend && npm run dev
@@ -66,6 +69,12 @@ frontend-dev: ## Run the UI on localhost:5173 (proxies /api to :8000)
 
 backend-test: ## Run the backend test suite (needs a running cluster)
 	cd backend && .venv/bin/python -m pytest
+
+backend-unit-test: ## Run policy/calendar tests without a database
+	cd backend && .venv/bin/python -m pytest -m unit
+
+bootstrap-test: ## Verify database initialization/startup in a disposable cluster
+	$(PYTHON) scripts/test_bootstrap.py
 
 frontend-test: ## Run the frontend test suite
 	cd frontend && npm test
@@ -78,4 +87,4 @@ test: backend-test frontend-test frontend-build ## Everything
 sync-openapi: ## Regenerate frontend/src/features/review/openapi.json (API must be running)
 	cd frontend && npm run sync-openapi
 
-.PHONY: help db-init db-up db-down venv setup migrate grants seed seed-reset backend-dev frontend-install frontend-dev backend-test frontend-test frontend-build test sync-openapi
+.PHONY: help db-init db-up db-down venv setup migrate grants seed seed-reset backend-dev frontend-install frontend-dev backend-test backend-unit-test bootstrap-test frontend-test frontend-build test sync-openapi

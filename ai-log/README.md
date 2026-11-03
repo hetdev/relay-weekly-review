@@ -5,6 +5,28 @@ assistance, including corrections and rejections — not a cleaned-up one-shot
 story. Summaries are labeled as summaries; no unrelated conversations,
 personal files, or credentials are included.
 
+## Reading this record
+
+- [Actual implementation transcript](raw/implementation.jsonl): 210
+  chronological visible user/assistant records, including tool inputs and
+  outputs, exported from the project-specific ZCode session. The first user
+  request reviews the plan; the later `implementa el plan` request begins
+  implementation. This records the plan-before-code sequence.
+- [Planning and review dialogue](raw/planning-and-review.jsonl): actual
+  visible dialogue from the Codex planning/review session. Tool outputs are
+  represented by the narrower correction logs below rather than a global
+  runtime dump.
+- [Export notes](raw/export-notes.json): scope, omitted record categories
+  and explicit privacy transformations. Neither transcript includes hidden
+  reasoning, system instructions, account configuration or unrelated tasks.
+- [Review fixes](2026-11-03-review-fixes.md) and
+  [unit-test audit](2026-11-03-unit-test-review.md): summaries, exact prompt
+  excerpts, decisions and measured verification from the correction sessions.
+
+The implementation history below remains a summary written during those
+sessions. Later availability of the original transcript does not change
+what was available when the earlier review notes were written.
+
 ## Session of 2026-11-03 (the implementation session)
 
 **Model/tool**: ZCode (agent) driven by GLM-5.3, planning-model-assisted

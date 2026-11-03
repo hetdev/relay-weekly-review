@@ -1,5 +1,6 @@
 // Fetches the OpenAPI schema from a running backend and stores it next to the
-// typed client. The contract test then verifies the two stay aligned.
+// typed client. A backend test compares this snapshot to the current API
+// schema; handwritten TypeScript interfaces still require review.
 import { writeFile } from "node:fs/promises";
 
 const BASE = process.env.RELAY_API_URL ?? "http://127.0.0.1:8000";

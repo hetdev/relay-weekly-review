@@ -6,7 +6,7 @@ account summary, a sortable location comparison, and an inspectable
 8-week historical series. Every number is traceable to a source aggregate;
 a change is presented as a reason to look, never as a verdict or a cause.
 
-The original plan is [`plan.md`](plan.md). Deviations and discoveries live in
+The original plan is [`PLAN.md`](PLAN.md). Deviations and discoveries live in
 [`docs/decisions/`](docs/decisions/); the honest interaction record lives in
 [`ai-log/`](ai-log/).
 
@@ -20,14 +20,22 @@ The original plan is [`plan.md`](plan.md). Deviations and discoveries live in
 
 ## Quick start (macOS + Homebrew)
 
+Prerequisites: macOS with Homebrew, GNU Make, Python 3.12, PostgreSQL 17,
+and Node.js 24 with npm. The checked-in Makefile defaults to Homebrew's
+Apple Silicon paths. This is the verified local platform; Linux and Intel
+macOS may require binary-path overrides and have not been validated.
+Allow ports 5433 (dedicated database), 8000 (API), and 5173 (UI) on loopback.
+Package installation needs Internet access; the running feature does not.
+
 ```bash
-# 0. Prerequisites: Homebrew with postgresql@17 and python@3.12 installed
-brew install postgresql@17 python@3.12
+# 0. Install prerequisites if absent
+brew install postgresql@17 python@3.12 node@24
+export PATH="$(brew --prefix node@24)/bin:$PATH"
 
 # 1. One-time: dedicated local cluster (port 5433, loopback only, data in var/)
 make db-init
 
-# 2. Everything else: venv, migrations, verified seed import, npm install
+# 2. Everything else: venv, migrations, verified seed import, locked npm install
 make setup
 
 # 3. Run API (127.0.0.1:8000) and UI (localhost:5173, proxies /api)
@@ -42,7 +50,9 @@ each account's own timezone.
 ### Verify
 
 ```bash
-make test            # backend (103 tests) + frontend (24 tests) + production build
+make test            # backend + frontend tests + production build
+make backend-unit-test # policy/calendar tests; no running database required
+make bootstrap-test  # fresh disposable PostgreSQL cluster; no existing DBs changed
 make seed            # re-running is a verified no-op
 make sync-openapi    # regenerate the frontend contract snapshot (API running)
 ```
@@ -76,7 +86,7 @@ see the insufficient-history state.
 ## Architecture (summary)
 
 Layered modular monolith with a strict inward dependency rule
-(`plan.md` §4): FastAPI routes → `weekly-review` service → pure comparison
+(`PLAN.md` §4): FastAPI routes → `weekly-review` service → pure comparison
 policy (no I/O, versioned) and a repository port implemented by a SQLAlchemy
 adapter that aggregates in PostgreSQL. The browser never recomputes business
 classifications; the server never interpolates request values into SQL.
@@ -131,3 +141,22 @@ ai-log/                 implementation interaction record
   only; no production scalability claim is made from 12.6k rows.
 - The optional LLM briefing layer was evaluated and **deferred** with evidence
   (see `docs/decisions/0007-llm-deferred.md`).
+
+## Verification and walkthrough
+
+See [validation evidence](docs/VALIDATION.md) for measured checks and their
+limits, and the [demo walkthrough](docs/DEMO.md) for a short reproducible
+review path. Stop the development servers with Ctrl-C; `make db-down`
+stops the dedicated database without deleting its data. Restart it with
+`make db-up` before returning to development or running integration tests.
+
+## With another day
+
+Confirm the coverage/ingestion contract with Product so a missing event can
+be distinguished from missing collection, and clarify location lifecycle
+data before inferring openings or closures. Add an automated real-browser
+smoke test for the documented walkthrough and a portable container-based
+setup after validating it on another OS. Benchmark representative larger
+workloads before adding indexes, caching or pre-aggregation. Production
+hosting would require real authentication/tenant authorization and a
+separately reviewed migration and backup process.

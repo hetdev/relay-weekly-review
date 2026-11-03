@@ -69,7 +69,7 @@ export function SummaryCard({ review }: { review: ReviewResponse }) {
 
       {review.coverage.warnings.includes("population_change") ? (
         <p className="warning" role="status">
-          ⚠ New locations opened during the comparison window, so the overall
+          ⚠ Locations were first recorded during the comparison window, so the overall
           classification is hidden. Totals still include every location.
         </p>
       ) : null}

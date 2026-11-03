@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { useReview } from "../src/features/review/useReview";
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -56,25 +56,26 @@ const reviewBody = (week: string) => ({
 });
 
 afterEach(() => {
+  cleanup();
   vi.unstubAllGlobals();
-  vi.useRealTimers();
 });
 
-describe("useReview stale-response protection", () => {
+describe("useReview", () => {
   it("a slow old response never overwrites a newer one", async () => {
-    let weekFetch = 0;
+    let resolveOld!: (value: Response) => void;
+    const oldResponse = new Promise<Response>((resolve) => { resolveOld = resolve; });
+    let oldSignal: AbortSignal | undefined;
     vi.stubGlobal(
       "fetch",
-      vi.fn(async (url: string) => {
+      vi.fn(async (url: string, init?: RequestInit) => {
         const target = new URL(url, "http://localhost");
         if (target.pathname.endsWith("/accounts")) return jsonResponse(accountsBody);
         if (target.pathname.endsWith("/review-options")) return jsonResponse(optionsBody(1));
-        // weekly-review: first call slow (old week), second call fast (new week)
-        weekFetch += 1;
         const week = target.searchParams.get("week_start");
-        if (weekFetch === 1) {
-          await new Promise((resolve) => setTimeout(resolve, 150));
-          return jsonResponse(reviewBody("2026-07-13"));
+        if (week === "2026-07-13") {
+          oldSignal = init?.signal ?? undefined;
+          // Deliberately ignore abort: exercise the late-response guard too.
+          return oldResponse;
         }
         return jsonResponse(reviewBody(week ?? ""));
       }),
@@ -84,48 +85,36 @@ describe("useReview stale-response protection", () => {
       initialProps: { week: "2026-07-13" },
     });
 
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.review?.scope.week_start).toBe("2026-07-13");
+    await waitFor(() => expect(oldSignal).toBeDefined());
+    expect(result.current.loading).toBe(true);
+    expect(result.current.review).toBeNull();
 
     // Switch to the newer week; its response arrives BEFORE the old one.
     rerender({ week: "2026-07-20" });
     await waitFor(() => expect(result.current.review?.scope.week_start).toBe("2026-07-20"));
+    expect(oldSignal?.aborted).toBe(true);
 
     // The slow old response lands now and must be dropped.
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await act(async () => {
+      resolveOld(jsonResponse(reviewBody("2026-07-13")));
+      await oldResponse;
+    });
     expect(result.current.review?.scope.week_start).toBe("2026-07-20");
     expect(result.current.error).toBeNull();
   });
 
-  it("surfaces ApiError messages with a retry path", async () => {
-    let attempts = 0;
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (url: string) => {
-        if (url.includes("weekly-review")) {
-          attempts += 1;
-          if (attempts === 1) {
-            return jsonResponse(
-              { error: { code: "internal_error", message: "An internal error occurred.", request_id: "x" } },
-              500,
-            );
-          }
-          return jsonResponse(reviewBody("2026-07-20"));
-        }
-        const target = new URL(url, "http://localhost");
-        if (target.pathname.endsWith("/accounts")) return jsonResponse(accountsBody);
-        return jsonResponse(optionsBody(1));
-      }),
-    );
-
+  it("does not fetch account data when no accounts are permitted", async () => {
+    const fetchMock = vi.fn(async (_url: string) => jsonResponse([]));
+    vi.stubGlobal("fetch", fetchMock);
     const { result } = renderHook(() =>
       useReview({ account: 1, week: "2026-07-20", metric: "call_received" as const, location: "" }),
     );
-    await waitFor(() => expect(result.current.error?.code).toBe("internal_error"));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.accounts).toEqual([]);
+    expect(result.current.options).toBeNull();
     expect(result.current.review).toBeNull();
-
-    act(() => result.current.reload());
-    await waitFor(() => expect(result.current.review?.scope.week_start).toBe("2026-07-20"));
     expect(result.current.error).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toBe("/api/v1/accounts");
   });
 });

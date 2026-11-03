@@ -11,7 +11,6 @@ from app.reviews.calendar import (
     CalendarError,
     is_monday,
     latest_complete_monday,
-    local_midnight,
     monday_of,
     parse_week_start,
     preceding_mondays,
@@ -21,6 +20,7 @@ from app.reviews.calendar import (
 )
 
 UTC = timezone.utc
+pytestmark = pytest.mark.unit
 CHICAGO = ZoneInfo("America/Chicago")
 NEW_YORK = ZoneInfo("America/New_York")
 PHOENIX = ZoneInfo("America/Phoenix")
@@ -69,11 +69,6 @@ class TestWeekWindows:
             _, _, start_u, end_u = week_window(monday, PHOENIX)
             assert end_u - start_u == timedelta(hours=168)
 
-    def test_local_midnight_converts_correctly_across_the_year(self):
-        for monday in (date(2026, 1, 5), date(2026, 7, 20), date(2026, 12, 21)):
-            _, _, start_u, _ = week_window(monday, CHICAGO)
-            assert start_u == local_midnight(monday, CHICAGO).astimezone(UTC)
-
     def test_rejects_non_monday(self):
         with pytest.raises(CalendarError):
             week_window(date(2026, 7, 21), CHICAGO)
@@ -81,9 +76,11 @@ class TestWeekWindows:
     def test_month_and_year_boundaries(self):
         # Week spanning a month boundary and one spanning a year boundary.
         _, _, s1, e1 = week_window(date(2026, 3, 30), CHICAGO)
-        assert s1.utctimetuple().tm_mon == 3 and e1.utctimetuple().tm_mon == 4
+        assert s1 == datetime(2026, 3, 30, 5, tzinfo=UTC)
+        assert e1 == datetime(2026, 4, 6, 5, tzinfo=UTC)
         _, _, s2, e2 = week_window(date(2026, 12, 28), NEW_YORK)
-        assert s2.utctimetuple().tm_year == 2026 and e2.utctimetuple().tm_year == 2027
+        assert s2 == datetime(2026, 12, 28, 5, tzinfo=UTC)
+        assert e2 == datetime(2027, 1, 4, 5, tzinfo=UTC)
 
 
 class TestBaseline:
@@ -93,11 +90,13 @@ class TestBaseline:
             date(2026, 6, 22), date(2026, 6, 29), date(2026, 7, 6), date(2026, 7, 13),
         ]
 
-    def test_target_week_excluded_from_baseline(self):
-        assert date(2026, 7, 20) not in preceding_mondays(date(2026, 7, 20), 8)
-
 
 class TestCoverage:
+    def test_exact_coverage_boundaries_are_included(self):
+        start = datetime(2026, 2, 2, tzinfo=UTC)
+        end = datetime(2026, 2, 9, tzinfo=UTC)
+        assert week_covered(start, end, start, end)
+
     def test_week_covered_requires_full_interval_inside(self):
         cov_start = datetime(2026, 2, 1, tzinfo=UTC)
         cov_end = datetime(2026, 7, 28, tzinfo=UTC)

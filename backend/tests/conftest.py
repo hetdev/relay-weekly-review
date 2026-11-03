@@ -68,9 +68,10 @@ def admin_engine() -> Engine:
 
 
 @pytest.fixture(autouse=True)
-def clean_database(request, admin_engine: Engine) -> None:
-    if request.node.get_closest_marker("no_truncate"):
-        return  # module owns its own database lifecycle (e.g. seed tests)
+def clean_database(request) -> None:
+    if request.node.get_closest_marker("unit") or request.node.get_closest_marker("no_truncate"):
+        return  # pure tests need no database; seed tests own their lifecycle
+    admin_engine = request.getfixturevalue("admin_engine")
     with admin_engine.begin() as connection:
         connection.execute(
             text("TRUNCATE activity_events, accounts, seed_import RESTART IDENTITY CASCADE")

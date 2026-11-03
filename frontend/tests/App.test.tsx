@@ -130,6 +130,33 @@ afterEach(() => {
 });
 
 describe("App", () => {
+  it("does not describe an unflagged value outside the range as within it", async () => {
+    const body = reviewBody();
+    const comparison = {
+      ...body.summary, count: 24, reference: 20, delta: 4,
+      percent_change: 20, observed_min: 20, observed_max: 20,
+    };
+    installFetch({ review: reviewBody({
+      summary: comparison,
+      locations: [{ ...body.locations[0], view: comparison }],
+    }) });
+    render(<App />);
+    await waitFor(() => expect(screen.getAllByText("Review thresholds not met").length).toBe(2));
+    expect(screen.queryByText("Within recent range")).toBeNull();
+    expect(screen.getAllByText("20–20").length).toBe(2);
+  });
+
+  it("describes first recorded activity without claiming a location opened", async () => {
+    const body = reviewBody();
+    installFetch({ review: reviewBody({
+      coverage: { ...body.coverage, warnings: ["population_change"] },
+      summary: { ...body.summary, reason: null, classification_suppressed: true },
+    }) });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText(/Locations were first recorded/)).toBeTruthy());
+    expect(screen.queryByText(/New locations opened/)).toBeNull();
+  });
+
   it("renders the summary and accessible location table from the API", async () => {
     installFetch();
     render(<App />);

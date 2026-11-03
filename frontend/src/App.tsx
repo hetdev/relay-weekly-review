@@ -159,7 +159,7 @@ function ReviewBody({ review }: { review: ReviewResponse }) {
           (this week excluded). Change thresholds: flagged only when the move
           beyond the recent range is ≥{review.policy.min_absolute_change} events
           and ≥{Math.round(review.policy.min_relative_change * 100)}% of the
-          range edge — policy {review.policy.version}. “Within recent range”
+          range edge — policy {review.policy.version}. “Review thresholds not met”
           means those explicit thresholds were not met; it is not a judgement
           of business health.
         </p>

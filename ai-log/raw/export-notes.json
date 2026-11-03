@@ -1,0 +1,27 @@
+{
+  "session": "project-scoped ZCode implementation session",
+  "model": "GLM-5.3",
+  "records": 210,
+  "omitted": {
+    "runtime_injected_messages": 38,
+    "step-start": 205,
+    "reasoning": 114,
+    "step-finish": 205
+  },
+  "redactions": {},
+  "path_replacements": {
+    "project_absolute_path": "<PROJECT>",
+    "home_absolute_path": "<HOME>"
+  },
+  "format": "Actual visible text and tool inputs/outputs; no reasoning, system instructions, runtime injection or credentials/config metadata. Not a complete host-runtime dump.",
+  "codex_dialogue": {
+    "records": 30,
+    "excluded": {
+      "runtime_context": 4,
+      "career_strategy": 6,
+      "account_access_advisory": 1
+    },
+    "tools": "Excluded from this dialogue-only export; project-specific implementation tool records are retained in implementation.jsonl.",
+    "policy": "Actual visible messages; excludes private career strategy/account access context and machine/runtime messages; omissions are disclosed, not rewritten as full history."
+  }
+}

@@ -1,6 +1,7 @@
 // Typed API client. Types mirror the backend contract (backend/app/api/dtos.py);
 // `npm run sync-openapi` regenerates src/features/review/openapi.json from the
-// running API and the contract test verifies the two stay aligned.
+// running API. A backend test checks snapshot freshness against the live
+// schema; these handwritten TypeScript interfaces still require review.
 
 export type Metric = "call_received" | "lead_created" | "appointment_set";
 
