@@ -42,7 +42,7 @@ each account's own timezone.
 ### Verify
 
 ```bash
-make test            # backend (103 tests) + frontend (23 tests) + production build
+make test            # backend (103 tests) + frontend (24 tests) + production build
 make seed            # re-running is a verified no-op
 make sync-openapi    # regenerate the frontend contract snapshot (API running)
 ```
@@ -61,6 +61,10 @@ make sync-openapi    # regenerate the frontend contract snapshot (API running)
 - All filters live in the URL: reload, back/forward, and shared links
   reproduce the exact view. Account switches clear incompatible location
   filters; invalid URL state recovers with a visible notice.
+- Accessibility: semantic table with caption and sort state (`aria-sort`),
+  labeled/focusable controls, skip link, visible focus, status text plus
+  shape plus color, keyboard-scrollable table region on narrow screens,
+  reduced-motion and forced-colors support, and a React error boundary.
 - Fixture transparency: demo date, last recorded event, coverage interval, and
   policy version/thresholds are shown in the UI.
 

@@ -213,6 +213,21 @@ describe("App", () => {
     expect(screen.getByText(/not valid for this account/)).toBeTruthy();
   });
 
+  it("exposes an accessible scroll region and a single metric group", async () => {
+    installFetch();
+    render(<App />);
+    await waitFor(() => expect(screen.getByText("19")).toBeTruthy());
+
+    // Narrow screens scroll the table inside a labeled, focusable region.
+    const region = screen.getByRole("region", { name: "Location comparison table" });
+    expect((region as HTMLElement).tabIndex).toBe(0);
+
+    // The metric control is named once (fieldset+legend), not twice.
+    expect(document.querySelectorAll('[role="group"]').length).toBe(0);
+    expect(document.querySelectorAll("fieldset").length).toBe(1);
+    expect(screen.getByRole("group", { name: "Metric" })).toBeTruthy();
+  });
+
   it("sorts by count with an honest aria-sort and toggles direction", async () => {
     installFetch();
     render(<App />);

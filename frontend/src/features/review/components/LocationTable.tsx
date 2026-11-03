@@ -86,8 +86,16 @@ export function LocationTable({ rows, weekStart }: LocationTableProps) {
   );
 
   return (
-    <table className="location-table">
-      <caption>
+    // A labeled, focusable scroll region: keyboard users can scroll the
+    // table on narrow screens and screen readers announce it as such.
+    <div
+      className="table-scroll"
+      role="region"
+      aria-label="Location comparison table"
+      tabIndex={0}
+    >
+      <table className="location-table">
+        <caption>
         Location comparison · week of {formatWeekRange(weekStart)} · flags are ranked:
         decreases by shortfall, then increases, then other states
       </caption>
@@ -99,7 +107,7 @@ export function LocationTable({ rows, weekStart }: LocationTableProps) {
           <th scope="col" className="num">Recent range</th>
           {header("change", "Change")}
           <th scope="col" className="text">Status</th>
-          <th scope="col" className="sr-only">History</th>
+          <th scope="col" className="text">History</th>
         </tr>
       </thead>
       <tbody>
@@ -158,8 +166,9 @@ export function LocationTable({ rows, weekStart }: LocationTableProps) {
             ) : null}
           </Fragment>
         ))}
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
   );
 }
 

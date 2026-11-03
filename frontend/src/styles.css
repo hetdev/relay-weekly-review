@@ -181,6 +181,13 @@ body {
   border: 1px solid var(--line);
 }
 
+.table-scroll {
+  overflow-x: auto;
+  /* Keep the focus outline visible on the scroll region (inset otherwise
+     clips it at the rounded corners). */
+  outline-offset: 0;
+}
+
 .location-table {
   width: 100%;
   border-collapse: collapse;
@@ -243,7 +250,8 @@ body {
   border: 1px solid var(--line);
   background: var(--surface);
   border-radius: 6px;
-  padding: 0.2rem 0.5rem;
+  /* Comfortable touch target (~24px+ inline) without looking bulky. */
+  padding: 0.35rem 0.6rem;
   cursor: pointer;
 }
 
@@ -267,7 +275,9 @@ body {
 .week-history li.uncovered .week-label,
 .week-history li.uncovered .week-count {
   color: var(--ink-soft);
-  opacity: 0.55;
+  /* De-emphasized but still readable data: 0.55 failed text contrast
+     against the soft background, so keep it lighter yet AA-safe. */
+  opacity: 0.8;
 }
 .week-bar {
   height: 0.9rem;
@@ -327,18 +337,41 @@ body {
   margin-top: 1rem;
 }
 
+/* Visually-hidden utility WITHOUT position:absolute — an absolutely
+   positioned cell escapes its scroll container's clip and re-creates page
+   overflow (found during the 375px audit). Clip-path keeps it in layout. */
 .sr-only {
-  position: absolute;
   width: 1px;
   height: 1px;
   overflow: hidden;
-  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
   white-space: nowrap;
 }
 
 :focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
+}
+
+/* Respect users who ask for less motion: the spinner is the only animation. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+/* Windows High Contrast / forced-colors mode: bars and segments carry
+   their meaning through text already; give bars a visible border since
+   background colors are replaced there. */
+@media (forced-colors: active) {
+  .week-bar {
+    border: 1px solid CanvasText;
+  }
+  .segment.active {
+    forced-color-adjust: none;
+    background: SelectedItem;
+    color: SelectedItemText;
+  }
 }
 
 @media (max-width: 40rem) {

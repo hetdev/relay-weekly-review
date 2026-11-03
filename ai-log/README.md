@@ -96,6 +96,39 @@ ones found while re-verifying:
 
 Frontend suite grew to 23 tests; backend remains at 103, all green.
 
+## Accessibility audit pass (same day, at the user's prompt)
+
+Audited in a real browser (structure, focus CSS, 375px layout) plus the
+compiled CSS. Verified present: semantic table with caption/scopes/aria-sort,
+all controls labeled, heading hierarchy, lang, aria-expanded/pressed,
+role=status/alert states, skip link, :focus-visible outline, text+shape+color
+status, tabular numerals. Fixed as a result:
+
+- **Page-wide horizontal overflow at 375px** despite a correct internal
+  scroll region. Root cause: the `.sr-only` utility used
+  `position: absolute`, and the visually hidden "History" `<th>` had no
+  positioned ancestor inside the scroll container — its containing block
+  escaped the region's clip and extended the page's scrollable area to
+  624px. Replaced with a visible "History" header (simpler and more honest
+  for a labeled column) and a clip-path-based sr-only utility that stays in
+  layout. Verified: docScrollWidth == viewport, no pan, table scrolls
+  internally.
+- Table wrapped in a labeled, focusable scroll region (`role="region"`,
+  `aria-label`, `tabindex="0"`) so keyboard users can scroll it.
+- `prefers-reduced-motion` (spinner animation) and `forced-colors` (bar
+  borders, active segment) media queries added.
+- Uncovered-week text opacity raised from 0.55 (contrast fail for real
+  data) to 0.8.
+- Duplicate group semantics removed from the metric control
+  (fieldset+legend already names it; the inner `role="group"` made screen
+  readers announce it twice).
+- Larger touch targets for row-expansion buttons.
+
+Environment limitation, recorded honestly: the in-app browser intercepts
+Tab and its webview lacks window focus, so keyboard Tab-order traversal was
+verified structurally (native controls in DOM order, focus-visible rules in
+the compiled CSS) rather than by watching focus move.
+
 Verified clean during the review (checked, not assumed): parameterization
 of every repository query including the timezone used in `AT TIME ZONE`,
 account-scope presence in every repository method, no interpolation of

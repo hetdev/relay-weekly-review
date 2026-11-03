@@ -68,7 +68,9 @@ export function Controls({
 
       <fieldset className="metric-fieldset">
         <legend>Metric</legend>
-        <div className="segmented" role="group" aria-label="Metric">
+        {/* The fieldset+legend already names this group; an inner
+            role="group" would announce it twice. */}
+        <div className="segmented">
           {METRICS.map((candidate) => (
             <button
               key={candidate}
