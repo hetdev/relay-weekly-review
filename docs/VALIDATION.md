@@ -87,3 +87,20 @@ original validation; they are not relabeled as a fresh install of this fix.
 A focused re-review of the correction diff checked all `run_import` callers,
 CLI precedence, guard placement and transaction boundaries. No further
 findings remained in that correction diff.
+
+## Final delivery correction validation
+
+After the final review, updated Vite to 7.3.7, Vitest to 4.1.12 and the
+React plugin to 4.7.0. A clean `npm ci --ignore-scripts`, 22 frontend tests,
+TypeScript and production build passed; `npm audit` reported zero frontend
+vulnerabilities. The full backend suite passed again: 113 cases.
+
+Invalid initial/history URLs now show a recovery notice and are replaced
+without adding history entries. Two regressions check valid filters and the
+fragment survive and a reload reads the repaired state.
+
+The Vite check rejected untrusted/opaque cross-origin reads, an untrusted
+Host, and tokenless browser HMR; local source, HTML, proxy and authenticated
+HMR remained available. See the final correction log for harness corrections
+and scope. The delivered Git checkout is verified using its own `.git` and
+exact top-level directory, not a Git command that could discover its parent.

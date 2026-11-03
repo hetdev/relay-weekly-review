@@ -30,17 +30,21 @@ export default function App() {
     }
   }, []);
 
-  // Back/forward reproduce earlier views.
+  // Initial load and back/forward share the same invalid-URL recovery.
   useEffect(() => {
     const onPopState = () => {
       const { filters: parsed, invalid } = parseUrlFilters(window.location.search);
       setFilters(parsed);
+      if (invalid.length > 0) {
+        window.history.replaceState(null, "", window.location.pathname + filtersToSearch(parsed) + window.location.hash);
+      }
       setUrlNotice(
         invalid.length > 0
           ? `Some URL parameters were invalid and reset to defaults: ${invalid.join(", ")}`
           : null,
       );
     };
+    onPopState();
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);

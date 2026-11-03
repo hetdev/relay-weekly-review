@@ -32,6 +32,8 @@ The implementation history below remains a summary written during those
 sessions. Later availability of the original transcript does not change
 what was available when the earlier review notes were written.
 
+- [Final delivery corrections](2026-11-03-final-delivery-fixes.md): dependency security, URL recovery, packaging corrections and verification.
+
 ## Session of 2026-11-03 (the implementation session)
 
 **Model/tool**: ZCode (agent) driven by GLM-5.3, planning-model-assisted

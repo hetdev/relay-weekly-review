@@ -334,3 +334,26 @@ describe("App", () => {
     expect(screen.queryByRole("table")).toBeNull();
   });
 });
+
+
+it.each(["initial load", "history navigation"])("repairs invalid filters on %s", async (entry) => {
+  installFetch();
+  if (entry === "history navigation") {
+    render(<App />);
+    await waitFor(() => expect(screen.getByText("19")).toBeTruthy());
+  }
+  window.history.replaceState(null, "", "/?account=5&metric=garbage&location=Site+A#main");
+  const historyLength = window.history.length;
+  if (entry === "initial load") render(<App />);
+  else await act(async () => window.dispatchEvent(new PopStateEvent("popstate")));
+  await waitFor(() => expect(screen.getByText(/parameters were invalid and reset/)).toBeTruthy());
+  expect(window.location.search).toBe("?account=5&location=Site+A");
+  expect(window.location.hash).toBe("#main");
+  expect(window.history.length).toBe(historyLength);
+  await waitFor(() => expect(screen.getByText("19")).toBeTruthy());
+  expect(screen.getByRole("button", { name: "Calls received" }).getAttribute("aria-pressed")).toBe("true");
+  cleanup();
+  render(<App />);
+  await waitFor(() => expect(screen.getByText("19")).toBeTruthy());
+  expect(screen.queryByText(/parameters were invalid/)).toBeNull();
+});

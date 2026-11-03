@@ -19,13 +19,10 @@
     "@testing-library/react": "16.1.0",
     "@types/react": "18.3.14",
     "@types/react-dom": "18.3.2",
-    "@vitejs/plugin-react": "4.3.4",
+    "@vitejs/plugin-react": "4.7.0",
     "jsdom": "25.0.1",
     "typescript": "5.6.3",
-    "vite": "5.4.11",
-    "vitest": "2.1.8"
-  },
-  "allowScripts": {
-    "esbuild@0.21.5": true
+    "vite": "7.3.7",
+    "vitest": "4.1.12"
   }
 }
