@@ -53,3 +53,8 @@ The original PLAN.md, original implementation log, business rules, backend,
 and migrations were preserved. No new OS/browser certification or repeat
 full backend dependency installation is claimed. The earlier fresh-clone
 setup remains a dated record; frontend dependencies were installed afresh.
+
+Final compatibility pass: the application mounts under React Strict Mode.
+The initial recovery now retains its notice across effect replay; actual
+history navigation still clears an obsolete notice. Both new interaction
+cases run under Strict Mode, matching the real entry point.

@@ -1,3 +1,4 @@
+import { StrictMode } from "react";
 // Interaction tests over a mocked API: render, URL-driven state, sorting,
 // drilldown, and accessibility structure.
 
@@ -339,12 +340,12 @@ describe("App", () => {
 it.each(["initial load", "history navigation"])("repairs invalid filters on %s", async (entry) => {
   installFetch();
   if (entry === "history navigation") {
-    render(<App />);
+    render(<StrictMode><App /></StrictMode>);
     await waitFor(() => expect(screen.getByText("19")).toBeTruthy());
   }
   window.history.replaceState(null, "", "/?account=5&metric=garbage&location=Site+A#main");
   const historyLength = window.history.length;
-  if (entry === "initial load") render(<App />);
+  if (entry === "initial load") render(<StrictMode><App /></StrictMode>);
   else await act(async () => window.dispatchEvent(new PopStateEvent("popstate")));
   await waitFor(() => expect(screen.getByText(/parameters were invalid and reset/)).toBeTruthy());
   expect(window.location.search).toBe("?account=5&location=Site+A");
@@ -353,7 +354,7 @@ it.each(["initial load", "history navigation"])("repairs invalid filters on %s",
   await waitFor(() => expect(screen.getByText("19")).toBeTruthy());
   expect(screen.getByRole("button", { name: "Calls received" }).getAttribute("aria-pressed")).toBe("true");
   cleanup();
-  render(<App />);
+  render(<StrictMode><App /></StrictMode>);
   await waitFor(() => expect(screen.getByText("19")).toBeTruthy());
   expect(screen.queryByText(/parameters were invalid/)).toBeNull();
 });

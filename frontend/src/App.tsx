@@ -32,16 +32,16 @@ export default function App() {
 
   // Initial load and back/forward share the same invalid-URL recovery.
   useEffect(() => {
-    const onPopState = () => {
+    const onPopState = (event?: PopStateEvent) => {
       const { filters: parsed, invalid } = parseUrlFilters(window.location.search);
       setFilters(parsed);
       if (invalid.length > 0) {
         window.history.replaceState(null, "", window.location.pathname + filtersToSearch(parsed) + window.location.hash);
       }
-      setUrlNotice(
+      setUrlNotice((previous) =>
         invalid.length > 0
           ? `Some URL parameters were invalid and reset to defaults: ${invalid.join(", ")}`
-          : null,
+          : event ? null : previous,
       );
     };
     onPopState();
