@@ -10,6 +10,56 @@ The original plan is [`PLAN.md`](PLAN.md). Deviations and discoveries live in
 [`docs/decisions/`](docs/decisions/); the honest interaction record lives in
 [`ai-log/`](ai-log/).
 
+## Ticket interpretation and assumptions
+
+The ticket asks whether recent activity is normal for the same customer and
+which location deserves attention on Monday morning. This implementation
+answers that with the last complete local Monday–Sunday week, compared with
+its eight preceding weeks. Calls, leads and appointments are separate event
+counts; none is presented as unique customers or an attributable funnel.
+
+An account's IANA timezone defines its calendar weeks; UTC is the storage
+format. The supplied fixture is assumed to cover the documented recording
+interval. Missing events inside it are counted as zero, while the interface
+states that inactivity and missing collection cannot be distinguished.
+Distinct event IDs remain distinct even when their other fields match.
+
+The mean and observed range describe history, not a forecast or confidence
+interval. Low volume, zero reference and insufficient history have explicit
+states. First recorded activity is not an opening date; changes in the
+observed location population suppress an unsupported account-level label.
+A fixed trusted demo principal may inspect all fixture accounts; real
+production authentication is outside the exercise.
+
+## Key design decisions and trade-offs
+
+| Choice | Why | Trade-off |
+| --- | --- | --- |
+| FastAPI modular monolith, pure comparison policy and repository boundary | Keeps HTTP, calculation and storage responsibilities clear while deploying one application | A small amount of interface/DTO code; no distributed services or independent scaling |
+| PostgreSQL aggregation through SQLAlchemy Core/text queries; Alembic migrations | Reviewable SQL, parameter binding, relational integrity and real database behavior | Requires PostgreSQL locally; query/schema changes need migration and integration checks |
+| Eight-week mean plus visible historical range | Simple to explain and additive across a stable location population | Sensitive to historical outliers; thresholds are product heuristics, not statistical certainty |
+| Complete local weeks with timezone-aware UTC boundaries | Makes periods comparable and handles daylight-saving changes | Does not provide a partial-current-week comparison |
+| URL parameters as frontend filter state | Reload, sharing and back/forward reproduce the view without a state framework | Requires validation/recovery and stale-request protection; TypeScript interfaces remain manually reviewed |
+| Separate read-only API role and explicit verified seed command | Limits application writes and makes setup repeatable; reset/import is atomic | Adds role/grant setup; seed provenance is tied to this exact supplied fixture |
+| Real PostgreSQL integration tests plus small independent unit fixtures | Checks SQL, transactions, calendar edges and handwritten expected values | Integration tests require a running dedicated database; the pure subset does not |
+
+Details and later discoveries are in [decision records](docs/decisions/).
+
+## Deliberately deferred
+
+- **LLM briefing:** deterministic labels and drilldown already answer the
+  core question. Generated prose would add latency, cost, nondeterminism and
+  disclosure/validation work for limited benefit; the original plan explains
+  a possible bounded integration.
+- **Login/RBAC, notifications and forecasting:** excluded by the ticket.
+  The trusted demo principal is not a substitute for production access control.
+- **Caching, rollups, extra indexes and background infrastructure:** the
+  fixture does not establish a need. Query evidence is kept at fixture scale;
+  larger measured workloads should drive optimization.
+- **Production hosting and cross-platform packaging:** local execution is
+  the verified delivery. Managed deployment, backups and a portable container
+  setup require their own validation rather than an unsupported readiness claim.
+
 ## Stack
 
 - **Backend**: Python 3.12, FastAPI, SQLAlchemy (Core/`text()` SQL), Alembic,

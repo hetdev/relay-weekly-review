@@ -8,9 +8,11 @@ Date: 2026-11-03 · Status: implemented as planned (plan.md §7–8)
   Reload, back/forward, and shared links reproduce the view; no state
   framework. Account switches clear incompatible location filters; invalid
   URL values recover to defaults with a visible notice (never a blank screen).
-- The **typed client** mirrors the backend DTOs; `npm run sync-openapi`
-  commits the served OpenAPI snapshot next to the client, and a contract test
-  fails if the two drift (fields, nullability of `reason`, the metric enum).
+- The **typed client** mirrors the backend DTOs. `npm run sync-openapi`
+  refreshes the served OpenAPI snapshot next to the client; a backend unit
+  test compares the snapshot with the current API-generated schema, including
+  fields, requiredness and nullability. The TypeScript interfaces are
+  handwritten and still require review; this test does not prove they match.
 - **Stale-response protection** is twofold: every filter change aborts the
   in-flight fetch (AbortController) *and* a sequence guard drops late
   responses — tested by making the old request resolve after the new one.
