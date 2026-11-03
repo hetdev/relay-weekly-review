@@ -1,0 +1,653 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Relay Weekly Review API",
+    "description": "Weekly activity review against a location's own recent history (DASH-247).",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "summary": "Liveness",
+        "operationId": "liveness_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Liveness Healthz Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readyz": {
+      "get": {
+        "summary": "Readiness",
+        "operationId": "readiness_readyz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts": {
+      "get": {
+        "summary": "List Accounts",
+        "operationId": "list_accounts_api_v1_accounts_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AccountOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Accounts Api V1 Accounts Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{account_id}/review-options": {
+      "get": {
+        "summary": "Review Options",
+        "operationId": "review_options_api_v1_accounts__account_id__review_options_get",
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Account Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptionsOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{account_id}/weekly-review": {
+      "get": {
+        "summary": "Weekly Review",
+        "operationId": "weekly_review_api_v1_accounts__account_id__weekly_review_get",
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Account Id"
+            }
+          },
+          {
+            "name": "week_start",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "description": "Monday, YYYY-MM-DD",
+              "title": "Week Start"
+            },
+            "description": "Monday, YYYY-MM-DD"
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Metric",
+              "default": "call_received"
+            }
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Location"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccountOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "industry": {
+            "type": "string",
+            "title": "Industry"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "industry",
+          "timezone"
+        ],
+        "title": "AccountOut"
+      },
+      "BaselineOut": {
+        "properties": {
+          "week_count": {
+            "type": "integer",
+            "title": "Week Count"
+          },
+          "weeks_covered": {
+            "type": "integer",
+            "title": "Weeks Covered"
+          },
+          "start_utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start Utc"
+          }
+        },
+        "type": "object",
+        "required": [
+          "week_count",
+          "weeks_covered",
+          "start_utc"
+        ],
+        "title": "BaselineOut"
+      },
+      "ComparisonOut": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "delta": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delta"
+          },
+          "percent_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percent Change"
+          },
+          "observed_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Min"
+          },
+          "observed_max": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Max"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "classification_suppressed": {
+            "type": "boolean",
+            "title": "Classification Suppressed",
+            "default": false
+          },
+          "weeks": {
+            "items": {
+              "$ref": "#/components/schemas/WeekPointOut"
+            },
+            "type": "array",
+            "title": "Weeks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "count",
+          "reference",
+          "delta",
+          "percent_change",
+          "observed_min",
+          "observed_max",
+          "reason"
+        ],
+        "title": "ComparisonOut"
+      },
+      "CoverageOut": {
+        "properties": {
+          "coverage_start_utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Coverage Start Utc"
+          },
+          "coverage_end_utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Coverage End Utc"
+          },
+          "demo_now_utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Demo Now Utc"
+          },
+          "last_observed_event_utc": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Observed Event Utc"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "coverage_start_utc",
+          "coverage_end_utc",
+          "demo_now_utc",
+          "last_observed_event_utc",
+          "warnings"
+        ],
+        "title": "CoverageOut"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LocationOut": {
+        "properties": {
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "first_observed_utc": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Observed Utc"
+          },
+          "view": {
+            "$ref": "#/components/schemas/ComparisonOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "location",
+          "first_observed_utc",
+          "view"
+        ],
+        "title": "LocationOut"
+      },
+      "Metric": {
+        "type": "string",
+        "enum": [
+          "call_received",
+          "lead_created",
+          "appointment_set"
+        ],
+        "title": "Metric"
+      },
+      "OptionsOut": {
+        "properties": {
+          "account": {
+            "$ref": "#/components/schemas/AccountOut"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "locations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Locations"
+          },
+          "default_week": {
+            "type": "string",
+            "format": "date",
+            "title": "Default Week"
+          },
+          "available_weeks": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "title": "Available Weeks"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/CoverageOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "account",
+          "timezone",
+          "locations",
+          "default_week",
+          "available_weeks",
+          "coverage"
+        ],
+        "title": "OptionsOut"
+      },
+      "ReviewOut": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "scope": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Scope"
+          },
+          "time": {
+            "$ref": "#/components/schemas/TimeOut"
+          },
+          "baseline": {
+            "$ref": "#/components/schemas/BaselineOut"
+          },
+          "policy": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Policy"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/CoverageOut"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ComparisonOut"
+          },
+          "account_summary": {
+            "$ref": "#/components/schemas/ComparisonOut"
+          },
+          "locations": {
+            "items": {
+              "$ref": "#/components/schemas/LocationOut"
+            },
+            "type": "array",
+            "title": "Locations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "request_id",
+          "scope",
+          "time",
+          "baseline",
+          "policy",
+          "coverage",
+          "summary",
+          "account_summary",
+          "locations"
+        ],
+        "title": "ReviewOut"
+      },
+      "TimeOut": {
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "week_start_local": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Week Start Local"
+          },
+          "week_end_local": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Week End Local"
+          },
+          "week_start_utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Week Start Utc"
+          },
+          "week_end_utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Week End Utc"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timezone",
+          "week_start_local",
+          "week_end_local",
+          "week_start_utc",
+          "week_end_utc"
+        ],
+        "title": "TimeOut"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WeekPointOut": {
+        "properties": {
+          "week_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Week Start"
+          },
+          "covered": {
+            "type": "boolean",
+            "title": "Covered"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "week_start",
+          "covered",
+          "count"
+        ],
+        "title": "WeekPointOut"
+      }
+    }
+  }
+}

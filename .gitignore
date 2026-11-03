@@ -1,0 +1,21 @@
+# Local environment / secrets
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Local database cluster and logs (disposable demo infrastructure)
+var/
+backend/.env
+*.log
+
+# OS / editor
+.DS_Store

@@ -1,0 +1,43 @@
+=== Relay weekly review - aggregation query evidence (2026-11-03, local dev: PostgreSQL 17.11, Apple Silicon, 12,626 events) ===
+Query: weekly counts by location (the only aggregation path), window = 9 weeks
+
+--- account 7 (single location) EXPLAIN (ANALYZE, BUFFERS) ---
+GroupAggregate  (cost=144.86..148.10 rows=108 width=15) (actual time=2.202..2.209 rows=17 loops=1)
+  Group Key: location, ((date_trunc('week'::text, (occurred_at AT TIME ZONE 'America/Phoenix'::text)))::date)
+  Buffers: shared hit=46
+  ->  Sort  (cost=144.86..145.13 rows=108 width=11) (actual time=2.190..2.192 rows=92 loops=1)
+        Sort Key: location, ((date_trunc('week'::text, (occurred_at AT TIME ZONE 'America/Phoenix'::text)))::date)
+        Sort Method: quicksort  Memory: 27kB
+        Buffers: shared hit=46
+        ->  Bitmap Heap Scan on activity_events  (cost=9.93..141.22 rows=108 width=11) (actual time=1.926..2.154 rows=92 loops=1)
+              Recheck Cond: ((account_id = 7) AND ((event_type)::text = 'call_received'::text) AND (occurred_at >= '2026-05-25 02:00:00-05'::timestamp with time zone) AND (occurred_at < '2026-07-27 02:00:00-05'::timestamp with time zone))
+              Heap Blocks: exact=38
+              Buffers: shared hit=40
+              ->  Bitmap Index Scan on ix_activity_events_account_type_time  (cost=0.00..9.90 rows=108 width=0) (actual time=0.020..0.020 rows=92 loops=1)
+                    Index Cond: ((account_id = 7) AND ((event_type)::text = 'call_received'::text) AND (occurred_at >= '2026-05-25 02:00:00-05'::timestamp with time zone) AND (occurred_at < '2026-07-27 02:00:00-05'::timestamp with time zone))
+                    Buffers: shared hit=2
+Planning:
+  Buffers: shared hit=144
+Planning Time: 0.634 ms
+Execution Time: 2.246 ms
+
+--- account 1 (6 locations) EXPLAIN (ANALYZE, BUFFERS) ---
+GroupAggregate  (cost=165.73..174.82 rows=303 width=15) (actual time=0.596..0.618 rows=54 loops=1)
+  Group Key: location, ((date_trunc('week'::text, (occurred_at AT TIME ZONE 'America/Chicago'::text)))::date)
+  Buffers: shared hit=51
+  ->  Sort  (cost=165.73..166.48 rows=303 width=11) (actual time=0.594..0.600 rows=261 loops=1)
+        Sort Key: location, ((date_trunc('week'::text, (occurred_at AT TIME ZONE 'America/Chicago'::text)))::date)
+        Sort Method: quicksort  Memory: 33kB
+        Buffers: shared hit=51
+        ->  Bitmap Heap Scan on activity_events  (cost=16.91..153.24 rows=303 width=11) (actual time=0.387..0.537 rows=261 loops=1)
+              Recheck Cond: ((account_id = 1) AND ((event_type)::text = 'call_received'::text) AND (occurred_at >= '2026-05-25 00:00:00-05'::timestamp with time zone) AND (occurred_at < '2026-07-27 00:00:00-05'::timestamp with time zone))
+              Heap Blocks: exact=47
+              Buffers: shared hit=51
+              ->  Bitmap Index Scan on ix_activity_events_account_type_time  (cost=0.00..16.83 rows=303 width=0) (actual time=0.035..0.036 rows=261 loops=1)
+                    Index Cond: ((account_id = 1) AND ((event_type)::text = 'call_received'::text) AND (occurred_at >= '2026-05-25 00:00:00-05'::timestamp with time zone) AND (occurred_at < '2026-07-27 00:00:00-05'::timestamp with time zone))
+                    Buffers: shared hit=4
+Planning Time: 0.063 ms
+Execution Time: 0.633 ms
+
+Review request cost: 4 queries per weekly-review (account, first-observed, weekly counts, last observed) + 1 more only when a location filter is validated. No per-location queries.
+Environment: Homebrew PostgreSQL 17.11 on macOS arm64 (developer laptop), fixture-scale data only. No production scalability claim is made from 12.6k rows.
