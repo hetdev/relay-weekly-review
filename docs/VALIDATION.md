@@ -64,3 +64,26 @@ Before packaging, checked README link casing, excluded local environments,
 dependency trees and database files, and scanned tracked text for common
 credential/private-key patterns. No such credential material was found.
 This check is not an antivirus or a guarantee about future dependencies.
+
+## Orca/Ponytail correction follow-up
+
+The seed CLI now reads `backend/.env`. Reset verifies/parses the fixture
+before connecting and shares one transaction with the replacement import.
+The review's unused state field and constant were removed.
+
+Before the fix, regression tests reproduced the ignored file configuration
+and three destructive reset paths (missing file, tampered file and a failed
+post-load check): four failed and five passed. After the fix, all nine new
+regression cases passed against real PostgreSQL where applicable. The tests
+compare the original account, event and import-marker rows after failure,
+not merely row counts. They also exercise successful replacement, a safe
+rerun, configuration precedence, permission and target-name guards.
+
+The complete suite after this change passed: **113 backend cases**, including
+**52 database-free unit cases**, **20 frontend cases**, and the production
+build. The database-free subset passed with an unreachable database URL.
+The earlier clean-clone measurements above remain a dated record of the
+original validation; they are not relabeled as a fresh install of this fix.
+A focused re-review of the correction diff checked all `run_import` callers,
+CLI precedence, guard placement and transaction boundaries. No further
+findings remained in that correction diff.

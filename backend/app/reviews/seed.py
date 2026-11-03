@@ -13,17 +13,20 @@ Guarantees (PLAN.md section 5):
   data or a different hash is a hard failure. Rows are never silently
   overwritten.
 - --reset requires RELAY_ALLOW_RESET=1 and a relay_* database name, and is
-  the only path that clears an existing demo database.
+  the only path that clears an existing demo database. Clearing and loading
+  share one transaction; a failed import restores the existing data.
 """
 
 from __future__ import annotations
 
 import argparse
 import hashlib
+import os
 import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 from sqlalchemy import create_engine, text
 
@@ -133,12 +136,18 @@ def _integrity_ok(connection) -> bool:
     return int(orphans) == 0
 
 
-def run_import(seed_file: Path, database_url: str) -> str:
+def run_import(seed_file: Path, database_url: str, *, reset: bool = False) -> str:
     digest = verify_file(seed_file)
     accounts, events = parse_seed_file(seed_file)
+    if reset:
+        _validate_reset_target(database_url)
     engine = create_engine(database_url, future=True)
     try:
         with engine.begin() as connection:
+            if reset:
+                connection.execute(
+                    text("TRUNCATE activity_events, accounts, seed_import RESTART IDENTITY CASCADE")
+                )
             marker = connection.execute(
                 text("SELECT source_sha256 FROM seed_import ORDER BY imported_at DESC LIMIT 1")
             ).first()
@@ -220,24 +229,12 @@ def run_import(seed_file: Path, database_url: str) -> str:
         engine.dispose()
 
 
-def reset(database_url: str) -> None:
-    import os
-
+def _validate_reset_target(database_url: str) -> None:
     if os.environ.get("RELAY_ALLOW_RESET") != "1":
         raise SeedError("--reset requires RELAY_ALLOW_RESET=1 (disposable demo databases only)")
-    from urllib.parse import urlparse
-
     database_name = (urlparse(database_url).path or "").lstrip("/")
     if not database_name.startswith("relay_"):
         raise SeedError(f"refusing to reset non-demo database {database_name!r}")
-    engine = create_engine(database_url, future=True)
-    try:
-        with engine.begin() as connection:
-            connection.execute(
-                text("TRUNCATE activity_events, accounts, seed_import RESTART IDENTITY CASCADE")
-            )
-    finally:
-        engine.dispose()
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -257,17 +254,13 @@ def main(argv: list[str] | None = None) -> int:
 
     from app.config import DEFAULT_ADMIN_DATABASE_URL, load_env_file
 
-    load_env_file(Path(__file__).resolve().parents[1] / ".env")
-    import os
+    load_env_file(Path(__file__).resolve().parents[2] / ".env")
 
     database_url = args.database_url or os.environ.get(
         "RELAY_ADMIN_DATABASE_URL", DEFAULT_ADMIN_DATABASE_URL
     )
     try:
-        if args.reset:
-            reset(database_url)
-            print("reset: demo database cleared")
-        print(run_import(args.seed_file, database_url))
+        print(run_import(args.seed_file, database_url, reset=args.reset))
         return 0
     except SeedError as error:
         print(f"seed import failed: {error}", file=sys.stderr)

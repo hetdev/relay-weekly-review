@@ -17,7 +17,6 @@ import type { UrlFilters } from "./urlState";
 
 interface ReviewState {
   accounts: Account[];
-  accountsError: string | null;
   options: ReviewOptions | null;
   review: ReviewResponse | null;
   loading: boolean;
@@ -27,7 +26,6 @@ interface ReviewState {
 export function useReview(filters: UrlFilters): ReviewState & { reload: () => void } {
   const [state, setState] = useState<ReviewState>({
     accounts: [],
-    accountsError: null,
     options: null,
     review: null,
     loading: true,

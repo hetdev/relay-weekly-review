@@ -31,9 +31,6 @@ Reason = Literal[
     "no_review_flag",
 ]
 
-#: Reasons that mark a flagged change, used for ranking (PLAN.md section 6).
-FLAG_REASONS: frozenset[str] = frozenset({"below_recent_range", "above_recent_range"})
-
 
 @dataclass(frozen=True)
 class PolicyConfig:

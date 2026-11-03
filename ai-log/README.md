@@ -25,6 +25,8 @@ personal files, or credentials are included.
 - [Review fixes](2026-11-03-review-fixes.md) and
   [unit-test audit](2026-11-03-unit-test-review.md): summaries, exact prompt
   excerpts, decisions and measured verification from the correction sessions.
+- [Orca/Ponytail fixes](2026-11-03-orca-ponytail-fixes.md): reproduced failures,
+  atomic reset/configuration fixes and the follow-up verification.
 
 The implementation history below remains a summary written during those
 sessions. Later availability of the original transcript does not change

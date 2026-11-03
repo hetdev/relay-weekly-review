@@ -11,6 +11,9 @@ Date: 2026-11-03 · Status: implemented as planned (plan.md §5)
   must be exactly 20 accounts / 12,626 events.
 - Loading is one transaction: accounts → events → `seed_import` marker →
   post-conditions (counts + FK integrity) inside the same transaction.
+  Reset first verifies/parses the seed and validates permission and target.
+  Its TRUNCATE and replacement import share that same transaction; failures
+  roll back both the clear and the replacement rows.
 - Rerun semantics: matching marker + valid counts/integrity = verified no-op;
   anything else = hard failure. Rows are never silently overwritten.
   `--reset` requires `RELAY_ALLOW_RESET=1` and a `relay_*` database name.
@@ -25,3 +28,11 @@ Date: 2026-11-03 · Status: implemented as planned (plan.md §5)
   test, fixed, and covered by regression assertions on names/locations in
   `tests/test_seed.py` (nullability round-trip plus distinct-location checks).
   The tamper/no-op/marker-mismatch paths are all tested.
+
+## Review follow-up
+
+The CLI now resolves `backend/.env`, matching the API. Configuration tests
+cover file values, process-environment overrides and explicit URL arguments.
+Reset regression tests cover missing/tampered input, failure after insertion,
+successful replacement, idempotent rerun and rejection before connecting
+when reset permission or the disposable-database name check fails.

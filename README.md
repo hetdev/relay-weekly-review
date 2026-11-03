@@ -117,7 +117,10 @@ ai-log/                 implementation interaction record
 - Seed import verifies SHA-256 + byte size against `review-input/provenance.json`,
   loads transactionally, records a marker, and is idempotent; a mismatched or
   non-empty database fails loudly. `--reset` requires an explicit env flag and
-  a `relay_*` database name.
+  a `relay_*` database name. The seed is checked before clearing anything;
+  clearing and reloading share one transaction, so failures preserve the
+  previous data. The CLI reads `backend/.env`; process environment values
+  override that file, and `--database-url` overrides both.
 - All SQL is parameterized; sort keys are not interpolated; account scope is
   mandatory in every repository method (tested with sibling accounts sharing
   location names and a restricted principal).
