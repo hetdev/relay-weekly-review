@@ -1,0 +1,55 @@
+{
+  "commit": "b198a43bed9010bdeb202f40a54499bce760a371",
+  "tree": "161ebad001696e1c0098a0fb3b38e0fb70f85b8a",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "size": 66,
+      "git_blob": "dfe0770424b2a19faf507a501ebfc23be8f54e7b",
+      "sha256": "1a1dbe176bc233b499d35a57db7513f2941c99ab9759f177830c9149be99005b",
+      "url": "https://raw.githubusercontent.com/Qualitara/relay-analytics-starter/b198a43bed9010bdeb202f40a54499bce760a371/.gitattributes"
+    },
+    {
+      "path": ".gitignore",
+      "size": 10,
+      "git_blob": "e43b0f988953ae3a84b00331d0ccf5f7d51cb3cf",
+      "sha256": "cf237c7aff44efbe6e502e645c3e06da03a69d7bdeb43392108ef3348143417e",
+      "url": "https://raw.githubusercontent.com/Qualitara/relay-analytics-starter/b198a43bed9010bdeb202f40a54499bce760a371/.gitignore"
+    },
+    {
+      "path": "README.md",
+      "size": 1693,
+      "git_blob": "6d5a4d99dbb0f87fc53f522fbf145834478d1c52",
+      "sha256": "db46f49d13df2f7665d0c153f998c563ba43746d543cb00f22164497a0bc53c9",
+      "url": "https://raw.githubusercontent.com/Qualitara/relay-analytics-starter/b198a43bed9010bdeb202f40a54499bce760a371/README.md"
+    },
+    {
+      "path": "docs/PRODUCT_BACKGROUND.md",
+      "size": 1326,
+      "git_blob": "68c3941f56237f2cccb8ce25bef819e9168a0cdf",
+      "sha256": "d9dd852db2b86773f5ab5697bda72561b581eb41d2671aa2d29fdb896b4b7d42",
+      "url": "https://raw.githubusercontent.com/Qualitara/relay-analytics-starter/b198a43bed9010bdeb202f40a54499bce760a371/docs/PRODUCT_BACKGROUND.md"
+    },
+    {
+      "path": "docs/TICKET.md",
+      "size": 607,
+      "git_blob": "ec453b1f326b4cac0ca3c125c6f85f91f1fd2e0e",
+      "sha256": "00f7e9caeb1ff02c9fd6d7e6575956fd52f6f92caf821b64d61411a80914517c",
+      "url": "https://raw.githubusercontent.com/Qualitara/relay-analytics-starter/b198a43bed9010bdeb202f40a54499bce760a371/docs/TICKET.md"
+    },
+    {
+      "path": "schema.sql",
+      "size": 1174,
+      "git_blob": "96fc358192f2dc4e06a91b23555e6da81ba9c95f",
+      "sha256": "348912f4fd6dade1728058a4f666780c60b94578f4276135583f502616e51d3d",
+      "url": "https://raw.githubusercontent.com/Qualitara/relay-analytics-starter/b198a43bed9010bdeb202f40a54499bce760a371/schema.sql"
+    },
+    {
+      "path": "seed.sql",
+      "size": 2435560,
+      "git_blob": "f8e88a720ae70bfdd23734939983bb052e84e182",
+      "sha256": "40e60ee81d999eb32057b4437bc84e9ec197265d4e58c13c0bfbad150e6eaea2",
+      "url": "https://raw.githubusercontent.com/Qualitara/relay-analytics-starter/b198a43bed9010bdeb202f40a54499bce760a371/seed.sql"
+    }
+  ]
+}
