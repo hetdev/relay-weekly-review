@@ -15,13 +15,20 @@
   },
   "format": "Actual visible text and tool inputs/outputs; no reasoning, system instructions, runtime injection or credentials/config metadata. Not a complete host-runtime dump.",
   "codex_dialogue": {
-    "records": 30,
+    "records": 29,
     "excluded": {
       "runtime_context": 4,
       "career_strategy": 6,
-      "account_access_advisory": 1
+      "account_access_advisory": 1,
+      "user_requested_editorial_omission": 1
     },
     "tools": "Excluded from this dialogue-only export; project-specific implementation tool records are retained in implementation.jsonl.",
-    "policy": "Actual visible messages; excludes private career strategy/account access context and machine/runtime messages; omissions are disclosed, not rewritten as full history."
+    "policy": "Edited planning/review excerpt, not a verbatim transcript. Private career/account context and runtime messages are omitted as recorded. After the session, one user message was rephrased and one context-dependent user message omitted at the user's request. Original implementation transcript is unchanged; original planning dialogue remains in Git history.",
+    "editorial_changes": {
+      "date": "2026-11-03",
+      "rephrased_user_messages": 1,
+      "omitted_user_messages": 1,
+      "record_marking": "The rephrased record includes editorial_note; original timestamps denote source messages, not editing time."
+    }
   }
 }

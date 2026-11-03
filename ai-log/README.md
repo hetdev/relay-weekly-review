@@ -12,10 +12,13 @@ personal files, or credentials are included.
   outputs, exported from the project-specific ZCode session. The first user
   request reviews the plan; the later `implementa el plan` request begins
   implementation. This records the plan-before-code sequence.
-- [Planning and review dialogue](raw/planning-and-review.jsonl): actual
-  visible dialogue from the Codex planning/review session. Tool outputs are
-  represented by the narrower correction logs below rather than a global
-  runtime dump.
+- [Edited planning and review excerpt](raw/planning-and-review.jsonl):
+  visible dialogue from the Codex session, edited afterward at the user's
+  request. One user prompt was rephrased and one context-dependent prompt
+  omitted; this file is not a verbatim transcript. The rephrased record is
+  marked and the export notes describe the changes. Original versions remain
+  in Git history. Tool outputs are represented by the narrower correction
+  logs below rather than a global runtime dump.
 - [Export notes](raw/export-notes.json): scope, omitted record categories
   and explicit privacy transformations. Neither transcript includes hidden
   reasoning, system instructions, account configuration or unrelated tasks.
