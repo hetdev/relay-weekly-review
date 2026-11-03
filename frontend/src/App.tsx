@@ -47,7 +47,9 @@ export default function App() {
   const { accounts, options, review, loading, error, reload } = useReview(filters);
 
   // When the loaded data disagrees with the URL (unknown account/week/location),
-  // recover to valid values and surface a clear notice.
+  // recover to valid values, surface a clear notice, and rewrite the URL so a
+  // reload or a shared link carries the recovered state instead of repeating
+  // the invalid one.
   useEffect(() => {
     if (!options || loading || error) return;
     const patches: Partial<UrlFilters> = {};
@@ -64,7 +66,9 @@ export default function App() {
       patches.location = "";
     }
     if (Object.keys(patches).length > 0) {
-      setFilters((current) => ({ ...current, ...patches }));
+      const next: UrlFilters = { ...filters, ...patches };
+      setFilters(next);
+      window.history.replaceState(null, "", filtersToSearch(next) || window.location.pathname);
       setUrlNotice("Some filters in the URL were not valid for this account and were reset.");
     }
   }, [options, review, loading, error, filters]);

@@ -196,6 +196,23 @@ describe("App", () => {
     expect(window.location.search).not.toContain("location=");
   });
 
+  it("rewrites the URL when filters parse fine but are unknown to the account", async () => {
+    installFetch();
+    // account=999 is a positive int (parses) but unknown; Site Z parses but
+    // is not a known location for account 5.
+    window.history.replaceState(null, "", "?account=999&location=Site+Z");
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText("19")).toBeTruthy());
+    // The recovered view is served under a corrected URL, so reload and
+    // shared links carry valid state.
+    await waitFor(() => {
+      expect(window.location.search).toContain("account=5");
+      expect(window.location.search).not.toContain("Site+Z");
+    });
+    expect(screen.getByText(/not valid for this account/)).toBeTruthy();
+  });
+
   it("sorts by count with aria-sort and keeps determinism", async () => {
     installFetch();
     render(<App />);

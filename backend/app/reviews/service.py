@@ -8,7 +8,7 @@ policy modules only — never on FastAPI or SQLAlchemy types.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from datetime import date, datetime, timezone
+from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
 from app.config import Settings, validated_timezone
@@ -17,10 +17,6 @@ from app.reviews.errors import AccountNotFound, DataQualityError, InvalidWeek, U
 from app.reviews.metrics import Metric
 from app.reviews.ports import AccountRecord, ReviewRepository
 from app.reviews.policy import PolicyResult, classify, rank_key
-
-BASELINE_WEEKS = 8  # delegated to Settings.policy; kept for readability below
-
-TIME = timezone.utc
 
 
 @dataclass(frozen=True)

@@ -28,7 +28,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
-from app.config import Settings
+from app.config import (
+    COVERAGE_END_DEFAULT,
+    COVERAGE_START_DEFAULT,
+    DEMO_NOW_DEFAULT,
+    Settings,
+)
 from app.db.engine import create_db_engine
 from app.main import create_app
 from app.reviews import seed as seed_module
@@ -77,9 +82,9 @@ def recon_client(recon_engine: Engine) -> TestClient:
         database_url=RECON_APP_URL,
         admin_database_url=RECON_ADMIN_URL,
         allowed_account_ids=None,
-        demo_now=__import__("app.config", fromlist=["DEMO_NOW_DEFAULT"]).DEMO_NOW_DEFAULT,
-        coverage_start=__import__("app.config", fromlist=["COVERAGE_START_DEFAULT"]).COVERAGE_START_DEFAULT,
-        coverage_end=__import__("app.config", fromlist=["COVERAGE_END_DEFAULT"]).COVERAGE_END_DEFAULT,
+        demo_now=DEMO_NOW_DEFAULT,
+        coverage_start=COVERAGE_START_DEFAULT,
+        coverage_end=COVERAGE_END_DEFAULT,
         policy=PolicyConfig(),
     )
     engine = create_db_engine(RECON_APP_URL)

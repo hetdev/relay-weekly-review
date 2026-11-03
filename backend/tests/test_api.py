@@ -13,7 +13,6 @@ from tests.conftest import (
     TARGET_MONDAY,
     TEST_ADMIN_URL,
     insert_account,
-    insert_event,
     make_test_settings,
 )
 from app.db.engine import create_db_engine

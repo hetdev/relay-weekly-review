@@ -53,6 +53,34 @@ verification (render, filters, URL persistence, back/forward, drilldown) with
 a screenshot; EXPLAIN (ANALYZE, BUFFERS) evidence in
 docs/performance-observations.txt.
 
+## Code review pass (same day, after delivery)
+
+A deliberate fresh-eyes review of the delivered code found and fixed:
+
+- **Frontend (behavior)**: recovery from URL values that *parse* but are
+  unknown to the account (e.g. `?account=999&location=Site+Z`) healed the
+  view but never rewrote the URL — reload/shared links would repeat the
+  broken state. Fixed with `replaceState` of the recovered filters; covered
+  by a new regression test ("rewrites the URL when filters parse fine but
+  are unknown").
+- **Backend (quality)**: dead symbols removed (`BASELINE_WEEKS`/`TIME` in
+  the service, `ReviewServiceDep`/`build_engine` in deps, `REVIEW_TARGET`
+  in conftest, an unused import in test_api); `__import__` hacks in the
+  reconciliation test replaced with real imports; the internal-error
+  handler now logs through `logging` with the traceback instead of `print`.
+
+Noted and deliberately left (documented, low value to change now): table
+sort is ascending-only (no `aria-sort="descending"` cycle), `cssSafe` ids
+could collide for adversarial location names, the `scope` DTO field is a
+loose dict rather than a structured model, and Alembic without env vars
+fails with a generic config error. None affects the fixture workflow.
+
+Verified clean during the review (checked, not assumed): parameterization
+of every repository query including the timezone used in `AT TIME ZONE`,
+account-scope presence in every repository method, no interpolation of
+request values into SQL, half-open window handling, error-envelope shapes,
+and the population-change suppression paths.
+
 ## Redactions
 
 None required: no credentials, personal files, or unrelated conversations

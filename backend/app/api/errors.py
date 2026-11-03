@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.reviews.errors import ReviewError
+
+logger = logging.getLogger("relay.errors")
 
 # Domain errors that indicate caller mistakes map to 4xx; anything else in
 # ReviewError is a server-side data problem (5xx).
@@ -46,7 +50,7 @@ def validation_error_handler(request: Request, exc: RequestValidationError) -> J
 def internal_error_handler(request: Request, exc: Exception) -> JSONResponse:
     # Safe message only; the traceback with the request id goes to server logs.
     request_id = getattr(request.state, "request_id", None)
-    print(f"[relay] unhandled error request_id={request_id!r} error={exc!r}", flush=True)
+    logger.exception("unhandled error request_id=%s", request_id)
     return JSONResponse(
         status_code=500,
         content=error_body(request, "internal_error", "An internal error occurred."),

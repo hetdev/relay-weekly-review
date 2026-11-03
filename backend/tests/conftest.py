@@ -251,6 +251,3 @@ def client(admin_engine: Engine) -> TestClient:
 
 # Module-level counter shared by the client fixture (ids stay unique).
 _shared_event_ids = [count(10_000)]
-
-
-REVIEW_TARGET = {"week_start": TARGET_MONDAY.isoformat()}
