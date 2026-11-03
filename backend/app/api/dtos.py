@@ -67,12 +67,28 @@ class BaselineOut(BaseModel):
     start_utc: datetime
 
 
+class ScopeOut(BaseModel):
+    account_id: int
+    account_name: str
+    metric: str
+    location: str | None
+    week_start: str
+
+
+class PolicyOut(BaseModel):
+    version: str
+    baseline_weeks: int
+    low_volume_reference: float
+    min_absolute_change: int
+    min_relative_change: float
+
+
 class ReviewOut(BaseModel):
     request_id: str
-    scope: dict[str, str | int | None]
+    scope: ScopeOut
     time: TimeOut
     baseline: BaselineOut
-    policy: dict[str, str | int | float]
+    policy: PolicyOut
     coverage: CoverageOut
     summary: ComparisonOut
     account_summary: ComparisonOut
@@ -120,16 +136,16 @@ def location_out(row: LocationRow) -> LocationOut:
     )
 
 
-def review_out(result: ReviewResult, request_id: str, policy_fields: dict) -> ReviewOut:
+def review_out(result: ReviewResult, request_id: str, policy_fields: PolicyOut) -> ReviewOut:
     return ReviewOut(
         request_id=request_id,
-        scope={
-            "account_id": result.account.id,
-            "account_name": result.account.name,
-            "metric": result.metric.value,
-            "location": result.location_filter,
-            "week_start": result.week_start_local.date().isoformat(),
-        },
+        scope=ScopeOut(
+            account_id=result.account.id,
+            account_name=result.account.name,
+            metric=result.metric.value,
+            location=result.location_filter,
+            week_start=result.week_start_local.date().isoformat(),
+        ),
         time=TimeOut(
             timezone=result.timezone,
             week_start_local=result.week_start_local,

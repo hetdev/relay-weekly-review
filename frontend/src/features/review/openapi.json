@@ -477,6 +477,39 @@
         ],
         "title": "OptionsOut"
       },
+      "PolicyOut": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "baseline_weeks": {
+            "type": "integer",
+            "title": "Baseline Weeks"
+          },
+          "low_volume_reference": {
+            "type": "number",
+            "title": "Low Volume Reference"
+          },
+          "min_absolute_change": {
+            "type": "integer",
+            "title": "Min Absolute Change"
+          },
+          "min_relative_change": {
+            "type": "number",
+            "title": "Min Relative Change"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "baseline_weeks",
+          "low_volume_reference",
+          "min_absolute_change",
+          "min_relative_change"
+        ],
+        "title": "PolicyOut"
+      },
       "ReviewOut": {
         "properties": {
           "request_id": {
@@ -484,21 +517,7 @@
             "title": "Request Id"
           },
           "scope": {
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "type": "object",
-            "title": "Scope"
+            "$ref": "#/components/schemas/ScopeOut"
           },
           "time": {
             "$ref": "#/components/schemas/TimeOut"
@@ -507,21 +526,7 @@
             "$ref": "#/components/schemas/BaselineOut"
           },
           "policy": {
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "number"
-                }
-              ]
-            },
-            "type": "object",
-            "title": "Policy"
+            "$ref": "#/components/schemas/PolicyOut"
           },
           "coverage": {
             "$ref": "#/components/schemas/CoverageOut"
@@ -553,6 +558,46 @@
           "locations"
         ],
         "title": "ReviewOut"
+      },
+      "ScopeOut": {
+        "properties": {
+          "account_id": {
+            "type": "integer",
+            "title": "Account Id"
+          },
+          "account_name": {
+            "type": "string",
+            "title": "Account Name"
+          },
+          "metric": {
+            "type": "string",
+            "title": "Metric"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "week_start": {
+            "type": "string",
+            "title": "Week Start"
+          }
+        },
+        "type": "object",
+        "required": [
+          "account_id",
+          "account_name",
+          "metric",
+          "location",
+          "week_start"
+        ],
+        "title": "ScopeOut"
       },
       "TimeOut": {
         "properties": {

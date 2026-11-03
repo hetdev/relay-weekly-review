@@ -42,7 +42,7 @@ each account's own timezone.
 ### Verify
 
 ```bash
-make test            # backend (103 tests) + frontend (20 tests) + production build
+make test            # backend (103 tests) + frontend (23 tests) + production build
 make seed            # re-running is a verified no-op
 make sync-openapi    # regenerate the frontend contract snapshot (API running)
 ```

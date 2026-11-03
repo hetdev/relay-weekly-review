@@ -17,8 +17,13 @@ if config.config_file_name is not None:
 database_url = os.environ.get("RELAY_MIGRATION_DATABASE_URL") or os.environ.get(
     "RELAY_ADMIN_DATABASE_URL"
 )
-if database_url:
-    config.set_main_option("sqlalchemy.url", database_url)
+if not database_url:
+    raise SystemExit(
+        "Migrations need a database URL: set RELAY_MIGRATION_DATABASE_URL or "
+        "RELAY_ADMIN_DATABASE_URL (see README / Makefile). The API's read-only "
+        "RELAY_DATABASE_URL is intentionally not used for schema changes."
+    )
+config.set_main_option("sqlalchemy.url", database_url)
 
 target_metadata = None  # handwritten, reviewable revisions
 

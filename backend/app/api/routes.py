@@ -5,7 +5,15 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Query, Request
 
 from app.api.deps import get_service
-from app.api.dtos import AccountOut, OptionsOut, ReviewOut, account_out, options_out, review_out
+from app.api.dtos import (
+    AccountOut,
+    OptionsOut,
+    PolicyOut,
+    ReviewOut,
+    account_out,
+    options_out,
+    review_out,
+)
 from app.reviews.calendar import CalendarError, parse_week_start
 from app.reviews.errors import InvalidWeek
 from app.reviews.metrics import Metric
@@ -44,11 +52,11 @@ def weekly_review(
     return review_out(
         result,
         request_id=request.state.request_id,
-        policy_fields={
-            "version": policy.version,
-            "baseline_weeks": policy.baseline_weeks,
-            "low_volume_reference": policy.low_volume_reference,
-            "min_absolute_change": policy.min_absolute_change,
-            "min_relative_change": policy.min_relative_change,
-        },
+        policy_fields=PolicyOut(
+            version=policy.version,
+            baseline_weeks=policy.baseline_weeks,
+            low_volume_reference=policy.low_volume_reference,
+            min_absolute_change=policy.min_absolute_change,
+            min_relative_change=policy.min_relative_change,
+        ),
     )

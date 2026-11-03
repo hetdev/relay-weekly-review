@@ -213,21 +213,27 @@ describe("App", () => {
     expect(screen.getByText(/not valid for this account/)).toBeTruthy();
   });
 
-  it("sorts by count with aria-sort and keeps determinism", async () => {
+  it("sorts by count with an honest aria-sort and toggles direction", async () => {
     installFetch();
     render(<App />);
     await waitFor(() => expect(screen.getByText("19")).toBeTruthy());
 
     const sortButton = screen.getByRole("button", { name: /^This week/ });
+    // First click: descending (highest first) and labeled as such.
     await act(async () => {
       fireEvent.click(sortButton);
     });
-    const header = sortButton.closest("th");
-    expect(header?.getAttribute("aria-sort")).toBe("ascending");
+    expect(sortButton.closest("th")?.getAttribute("aria-sort")).toBe("descending");
+    let rows = screen.getAllByRole("row").slice(1);
+    expect(rows[0].querySelector("th")?.textContent).toBe("Site B"); // 15 > 4
 
-    const rows = screen.getAllByRole("row").slice(1); // skip header row
-    const firstLocationCell = rows[0].querySelector("th");
-    expect(firstLocationCell?.textContent).toBe("Site B"); // 15 > 4
+    // Second click: ascending, order reverses, label follows.
+    await act(async () => {
+      fireEvent.click(sortButton);
+    });
+    expect(sortButton.closest("th")?.getAttribute("aria-sort")).toBe("ascending");
+    rows = screen.getAllByRole("row").slice(1);
+    expect(rows[0].querySelector("th")?.textContent).toBe("Site A"); // 4 < 15
   });
 
   it("expands a location into its 9-week history", async () => {
@@ -257,6 +263,18 @@ describe("App", () => {
     });
     await waitFor(() => expect(screen.getByText("19")).toBeTruthy());
     expect(fetchMock.mock.calls.length).toBeGreaterThan(3);
+  });
+
+  it("degrades to the error boundary on a malformed response", async () => {
+    // A 200 whose body is missing required fields must not blank the app.
+    installFetch({ review: { ...reviewBody(), summary: undefined } });
+    render(<App />);
+    await waitFor(() =>
+      expect(screen.getByRole("alert").textContent).toContain(
+        "Something went wrong while displaying the review.",
+      ),
+    );
+    expect(screen.getByRole("button", { name: "Reload the page" })).toBeTruthy();
   });
 
   it("renders the empty-account state without a table", async () => {

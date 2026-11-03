@@ -15,6 +15,20 @@ import {
 } from "../format";
 
 type SortKey = "review" | "location" | "count" | "change";
+type SortDir = "asc" | "desc";
+
+interface SortState {
+  key: SortKey;
+  dir: SortDir;
+}
+
+// Natural first direction per column: counts/changes read best high-to-low,
+// names low-to-high. Repeated clicks toggle.
+const DEFAULT_DIR: Record<Exclude<SortKey, "review">, SortDir> = {
+  location: "asc",
+  count: "desc",
+  change: "desc",
+};
 
 interface LocationTableProps {
   rows: LocationRow[];
@@ -22,43 +36,54 @@ interface LocationTableProps {
 }
 
 export function LocationTable({ rows, weekStart }: LocationTableProps) {
-  const [sortKey, setSortKey] = useState<SortKey>("review");
+  const [sort, setSort] = useState<SortState>({ key: "review", dir: "asc" });
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const sortedRows = useMemo(() => {
-    if (sortKey === "review") return rows; // server ranking (flags first)
+    if (sort.key === "review") return rows; // server ranking (flags first)
     const copy = [...rows];
-    if (sortKey === "location") copy.sort((a, b) => a.location.localeCompare(b.location));
-    if (sortKey === "count")
-      copy.sort((a, b) => b.view.count - a.view.count || a.location.localeCompare(b.location));
-    if (sortKey === "change")
+    const direction = sort.dir === "asc" ? 1 : -1;
+    if (sort.key === "location") {
+      copy.sort((a, b) => a.location.localeCompare(b.location) * direction);
+    } else if (sort.key === "count") {
       copy.sort(
-        (a, b) =>
-          (b.view.delta ?? -Infinity) - (a.view.delta ?? -Infinity) ||
+        (a, b) => (a.view.count - b.view.count) * direction ||
           a.location.localeCompare(b.location),
       );
+    } else {
+      copy.sort(
+        (a, b) =>
+          ((a.view.delta ?? -Infinity) - (b.view.delta ?? -Infinity)) * direction ||
+          a.location.localeCompare(b.location),
+      );
+    }
     return copy;
-  }, [rows, sortKey]);
+  }, [rows, sort]);
 
-  const header = (key: SortKey, label: string, alignClass = "num") => {
-    const isSorted = sortKey === key;
-    return (
-      <th
-        scope="col"
-        aria-sort={isSorted ? "ascending" : "none"}
-        className={alignClass}
-      >
-        {key === "review" ? (
-          label
-        ) : (
-          <button type="button" className="sort-button" onClick={() => setSortKey(key)}>
-            {label}
-            <span aria-hidden="true">{isSorted ? " ▲" : " ↕"}</span>
-          </button>
-        )}
-      </th>
-    );
+  const onHeaderClick = (key: SortKey) => {
+    if (key === "review") {
+      setSort({ key, dir: "asc" });
+    } else if (sort.key === key) {
+      setSort({ key, dir: sort.dir === "asc" ? "desc" : "asc" });
+    } else {
+      setSort({ key, dir: DEFAULT_DIR[key] });
+    }
   };
+
+  // ARIA allows exactly these aria-sort values; keep the literal union.
+  const ariaSort = (key: SortKey): "none" | "ascending" | "descending" | "other" =>
+    sort.key !== key ? "none" : key === "review" ? "other" : sort.dir === "asc" ? "ascending" : "descending";
+
+  const header = (key: SortKey, label: string, alignClass = "num") => (
+    <th scope="col" aria-sort={ariaSort(key)} className={alignClass}>
+      <button type="button" className="sort-button" onClick={() => onHeaderClick(key)}>
+        {label}
+        <span aria-hidden="true">
+          {sort.key === key && key !== "review" ? (sort.dir === "asc" ? " ▲" : " ▼") : " ↕"}
+        </span>
+      </button>
+    </th>
+  );
 
   return (
     <table className="location-table">
@@ -78,7 +103,9 @@ export function LocationTable({ rows, weekStart }: LocationTableProps) {
         </tr>
       </thead>
       <tbody>
-        {sortedRows.map((row) => (
+        {sortedRows.map((row, index) => (
+          // Index-based ids cannot collide across locations with names that
+          // differ only in punctuation ("Site A" vs "Site-A").
           <Fragment key={row.location}>
             <tr>
               <th scope="row" className="text">
@@ -113,7 +140,7 @@ export function LocationTable({ rows, weekStart }: LocationTableProps) {
                   type="button"
                   className="expand-button"
                   aria-expanded={expanded === row.location}
-                  aria-controls={`history-${cssSafe(row.location)}`}
+                  aria-controls={`history-row-${index}`}
                   onClick={() =>
                     setExpanded((current) => (current === row.location ? null : row.location))
                   }
@@ -123,7 +150,7 @@ export function LocationTable({ rows, weekStart }: LocationTableProps) {
               </td>
             </tr>
             {expanded === row.location ? (
-              <tr className="history-row" id={`history-${cssSafe(row.location)}`}>
+              <tr className="history-row" id={`history-row-${index}`}>
                 <td colSpan={7}>
                   <WeekHistory row={row} />
                 </td>
@@ -169,8 +196,4 @@ function WeekHistory({ row }: { row: LocationRow }) {
       </p>
     </div>
   );
-}
-
-function cssSafe(name: string): string {
-  return name.replace(/[^a-zA-Z0-9_-]/g, "_");
 }

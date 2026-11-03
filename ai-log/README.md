@@ -75,6 +75,27 @@ could collide for adversarial location names, the `scope` DTO field is a
 loose dict rather than a structured model, and Alembic without env vars
 fails with a generic config error. None affects the fixture workflow.
 
+## Follow-up pass (same day, at the user's prompt)
+
+The four "deliberately left" items above were then fixed, plus two smaller
+ones found while re-verifying:
+
+- Sort is now bidirectional with honest `aria-sort` (descending by default
+  for counts/changes; the original code sorted descending while *labeling*
+  it ascending — fixed together). History-row ids are index-based, so
+  punctuation-differing location names cannot collide.
+- `scope` (and `policy`) became structured models (`ScopeOut`, `PolicyOut`);
+  the committed OpenAPI snapshot and the contract test cover their fields.
+- Alembic fails with an explicit message when no database URL is set.
+- The `no_truncate` pytest marker is registered (warning gone), and a React
+  `ErrorBoundary` degrades malformed responses to a message with a reload
+  path. The boundary initially sat too low: the crash occurred in `App`'s
+  own render, which no descendant boundary can catch — the failing test
+  showed a fully unmounted tree; the review body moved into a child
+  component inside the boundary.
+
+Frontend suite grew to 23 tests; backend remains at 103, all green.
+
 Verified clean during the review (checked, not assumed): parameterization
 of every repository query including the timezone used in `AT TIME ZONE`,
 account-scope presence in every repository method, no interpolation of

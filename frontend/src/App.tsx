@@ -3,11 +3,12 @@
 // for every calculation.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ErrorBoundary } from "./features/review/components/ErrorBoundary";
 import { Controls } from "./features/review/components/Controls";
 import { LocationTable } from "./features/review/components/LocationTable";
 import { SummaryCard } from "./features/review/components/SummaryCard";
 import { EmptyState, ErrorState, LoadingState } from "./features/review/components/States";
-import type { Metric } from "./features/review/api";
+import type { Metric, ReviewResponse } from "./features/review/api";
 import { formatUtcTimestamp } from "./features/review/format";
 import { useReview } from "./features/review/useReview";
 import { filtersToSearch, parseUrlFilters, type UrlFilters } from "./features/review/urlState";
@@ -121,42 +122,55 @@ export default function App() {
           </p>
         ) : null}
 
-        {error ? (
-          <ErrorState message={error.message} onRetry={reload} />
-        ) : loading ? (
-          <LoadingState label="Loading weekly review…" />
-        ) : !review ? (
-          <EmptyState message="No accounts are available to this principal." />
-        ) : review.summary.reason === "no_activity_recorded" &&
-          review.locations.length === 0 ? (
-          <EmptyState
-            message={`No activity has been recorded for ${review.scope.account_name} as of this week.`}
-          />
-        ) : (
-          <>
-            <SummaryCard review={review} />
-            <LocationTable rows={review.locations} weekStart={review.scope.week_start} />
-            <footer className="footnotes">
-              <p>
-                “8-week average” is the mean of the eight preceding complete weeks
-                (this week excluded). Change thresholds: flagged only when the move
-                beyond the recent range is ≥{review.policy.min_absolute_change} events
-                and ≥{Math.round(review.policy.min_relative_change * 100)}% of the
-                range edge — policy {review.policy.version}. “Within recent range”
-                means those explicit thresholds were not met; it is not a judgement
-                of business health.
-              </p>
-              <p>
-                Weeks shown in grey fall outside the assumed fixture recording
-                interval ({formatUtcTimestamp(review.coverage.coverage_start_utc)} to{" "}
-                {formatUtcTimestamp(review.coverage.coverage_end_utc)}) and are never
-                averaged in. All boundaries are local Mondays in{" "}
-                {review.time.timezone}. Request {review.request_id}.
-              </p>
-            </footer>
-          </>
-        )}
+        <ErrorBoundary>
+          {error ? (
+            <ErrorState message={error.message} onRetry={reload} />
+          ) : loading ? (
+            <LoadingState label="Loading weekly review…" />
+          ) : !review ? (
+            <EmptyState message="No accounts are available to this principal." />
+          ) : (
+            // A child component (not App itself) reads the review body, so a
+            // malformed response is caught by this boundary instead of
+            // unmounting the whole tree.
+            <ReviewBody review={review} />
+          )}
+        </ErrorBoundary>
       </main>
     </div>
+  );
+}
+
+function ReviewBody({ review }: { review: ReviewResponse }) {
+  if (review.summary.reason === "no_activity_recorded" && review.locations.length === 0) {
+    return (
+      <EmptyState
+        message={`No activity has been recorded for ${review.scope.account_name} as of this week.`}
+      />
+    );
+  }
+  return (
+    <>
+      <SummaryCard review={review} />
+      <LocationTable rows={review.locations} weekStart={review.scope.week_start} />
+      <footer className="footnotes">
+        <p>
+          “8-week average” is the mean of the eight preceding complete weeks
+          (this week excluded). Change thresholds: flagged only when the move
+          beyond the recent range is ≥{review.policy.min_absolute_change} events
+          and ≥{Math.round(review.policy.min_relative_change * 100)}% of the
+          range edge — policy {review.policy.version}. “Within recent range”
+          means those explicit thresholds were not met; it is not a judgement
+          of business health.
+        </p>
+        <p>
+          Weeks shown in grey fall outside the assumed fixture recording
+          interval ({formatUtcTimestamp(review.coverage.coverage_start_utc)} to{" "}
+          {formatUtcTimestamp(review.coverage.coverage_end_utc)}) and are never
+          averaged in. All boundaries are local Mondays in{" "}
+          {review.time.timezone}. Request {review.request_id}.
+        </p>
+      </footer>
+    </>
   );
 }

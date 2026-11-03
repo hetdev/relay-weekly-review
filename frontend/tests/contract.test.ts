@@ -42,6 +42,13 @@ describe("backend contract matches typed client", () => {
     }
   });
 
+  it("scope is a structured model matching the client's scope type", () => {
+    const fields = properties("ScopeOut");
+    for (const field of ["account_id", "account_name", "metric", "location", "week_start"]) {
+      expect(fields).toContain(field);
+    }
+  });
+
   it("Comparison exposes nullable reference/delta/percent with a reason", () => {
     const fields = properties("ComparisonOut");
     for (const field of [
